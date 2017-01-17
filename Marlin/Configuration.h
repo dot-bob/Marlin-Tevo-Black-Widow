@@ -319,7 +319,7 @@
 
   // If you are using a pre-configured hotend then you can use one of the value sets by uncommenting it
 
-  // Tevo Black Widow Defaults - derived by Simons
+  // Tevo Black Widow - derived by Simons
    #define  DEFAULT_Kp 22.02
    #define  DEFAULT_Ki 2.12
    #define  DEFAULT_Kd 52.16
