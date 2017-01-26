@@ -1985,8 +1985,14 @@ static void clean_up_after_endstop_or_probe_move() {
   #define STOW_PROBE() set_probe_deployed(false)
 
   #if ENABLED(BLTOUCH)
+    #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
+      bool blTouchDeployed = false;
+    #endif
     FORCE_INLINE void set_bltouch_deployed(const bool &deploy) {
       servo[Z_ENDSTOP_SERVO_NR].move(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
+	  #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
+        blTouchDeployed = deploy;
+      #endif
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) {
           SERIAL_ECHOPAIR("set_bltouch_deployed(", deploy);
@@ -10096,6 +10102,14 @@ void idle(
   lcd_update();
 
   host_keepalive();
+  
+   #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    #if ENABLED(BLTOUCH)
+      if (blTouchDeployed) {
+        endstops.update();
+      }
+    #endif
+  #endif
 
   #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
     auto_report_temperatures();

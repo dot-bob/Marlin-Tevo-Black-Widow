@@ -337,7 +337,7 @@
 #define Y_HOME_BUMP_MM 5
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR {2, 2, 4}  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
-//#define QUICK_HOME  //if this is defined, if both x and y are to be homed, a diagonal move will be performed initially.
+#define QUICK_HOME  //if this is defined, if both x and y are to be homed, a diagonal move will be performed initially.
 
 // When G28 is called, this option will make Y home before X
 //#define HOME_Y_BEFORE_X
@@ -533,7 +533,7 @@
 #if ENABLED(ENSURE_SMOOTH_MOVES)
   #define ALWAYS_ALLOW_MENU      // If enabled, the menu will always be responsive.
                                    // WARNING: Menu navigation during short moves may cause stuttering!
-  #define LCD_UPDATE_THRESHOLD 50 // (ms) Minimum duration for the current segment to allow an LCD update.
+  #define LCD_UPDATE_THRESHOLD 135 // (ms) Minimum duration for the current segment to allow an LCD update.
                                    // Default value is good for graphical LCDs (e.g., REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER).
                                    // You may try to lower this value until you printer starts stuttering again as if ENSURE_SMOOTH_MOVES is disabled.
   #define MIN_BLOCK_TIME 6         // (ms) Minimum duration of a single block. You shouldn't need to modify this.
@@ -552,7 +552,7 @@
 
 #if ENABLED(ADVANCE)
   #define EXTRUDER_ADVANCE_K .0
-  #define D_FILAMENT 2.85
+  #define D_FILAMENT 1.75
 #endif
 
 /**

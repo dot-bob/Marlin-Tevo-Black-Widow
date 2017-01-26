@@ -312,6 +312,9 @@ void Stepper::set_directions() {
 
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
   extern volatile uint8_t e_hit;
+  #if ENABLED(BLTOUCH)
+    extern volatile uint8_t bl_hit;
+  #endif
 #endif
 
 /**
@@ -413,13 +416,43 @@ void Stepper::isr() {
     #endif
     )
     #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-      && e_hit
+      && (e_hit
+      #if ENABLED(BLTOUCH)
+        || bl_hit
+      #endif
+      )
     #endif
   ) {
     endstops.update();
 
     #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+      #if ENABLED(BLTOUCH)
+        if (bl_hit) {
+          #if ENABLED(DEBUG_LEVELING_FEATURE)
+            if (DEBUGGING(LEVELING)) {
+              SERIAL_ECHOPAIR("stepper.ISR() bl_hit(", bl_hit);
+              SERIAL_CHAR(')');
+              SERIAL_EOL;
+            }
+          #endif
+          if (motor_direction(Z_AXIS)) {
+            endstop_triggered(Z_AXIS);
+            bl_hit--;
+          }
+        }
+        if (e_hit) {
+          #if ENABLED(DEBUG_LEVELING_FEATURE)
+            if (DEBUGGING(LEVELING)) {
+              SERIAL_ECHOPAIR("e_hit(", e_hit);
+              SERIAL_CHAR(')');
+              SERIAL_EOL;
+            }
+          #endif
+          e_hit--;
+        }
+      #else
       e_hit--;
+    #endif
     #endif
   }
 
@@ -1121,6 +1154,14 @@ void Stepper::endstop_triggered(AxisEnum axis) {
     endstops_trigsteps[axis] = count_position[axis];
 
   #endif // !COREXY && !COREXZ && !COREYZ
+
+  #if ENABLED(DEBUG_LEVELING_FEATURE)
+    if (DEBUGGING(LEVELING)) {
+      SERIAL_ECHOPAIR("endstop_triggered(", axis);
+      SERIAL_CHAR(')');
+      SERIAL_EOL;
+    }
+  #endif
 
   kill_current_block();
 }

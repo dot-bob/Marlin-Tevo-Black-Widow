@@ -75,6 +75,11 @@
 volatile uint8_t e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
                             // Must be reset to 0 by the test function when the tests are finished.
 
+#if ENABLED(BLTOUCH)
+  volatile uint8_t bl_hit = 0; // Different from 0 when the endstops shall be tested in detail.
+                               // Must be reset to 0 by the test function when the tests are finished.
+#endif
+
 // Install Pin change interrupt for a pin. Can be called multiple times.
 void pciSetup(byte pin) {
   *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));  // enable pin
@@ -86,6 +91,15 @@ void pciSetup(byte pin) {
 FORCE_INLINE void endstop_ISR_worker( void ) {
   e_hit = 2; // Because the detection of a e-stop hit has a 1 step debouncer it has to be called at least twice.
 }
+
+#if ENABLED(BLTOUCH)
+  FORCE_INLINE void endstop_ISR_worker_bltouch( void ) {
+    bl_hit = 1;
+  }
+
+  // Use one Routine to handle bltouch
+  void endstop_ISR_bltouch(void) { endstop_ISR_worker_bltouch(); }
+#endif
 
 // Use one Routine to handle each group
 // One ISR for all EXT-Interrupts
@@ -162,7 +176,11 @@ void setup_endstop_interrupts( void ) {
 
   #if HAS_Z_MIN
     #if (digitalPinToInterrupt(Z_MIN_PIN) != NOT_AN_INTERRUPT)
-      attachInterrupt(digitalPinToInterrupt(Z_MIN_PIN), endstop_ISR, CHANGE);
+      #if ENABLED(BLTOUCH)
+        attachInterrupt(digitalPinToInterrupt(Z_MIN_PIN), endstop_ISR_bltouch, RISING);
+      #else
+        attachInterrupt(digitalPinToInterrupt(Z_MIN_PIN), endstop_ISR, CHANGE);
+      #endif
     #else
       // Not all used endstop/probe -pins can raise interrupts. Please deactivate ENDSTOP_INTERRUPTS or change the pin configuration!
       static_assert(digitalPinToPCICR(Z_MIN_PIN) != NULL, "Z_MIN_PIN is not interrupt-capable");

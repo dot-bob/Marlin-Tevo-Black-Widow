@@ -586,7 +586,19 @@ void kill_screen(const char* lcd_msg) {
         thermalManager.autotempShutdown();
       #endif
       wait_for_heatup = false;
+	  #if FAN_COUNT > 0
+        for (uint8_t i = 0; i < FAN_COUNT; i++) fanSpeeds[i] = 0;
+      #endif
+      thermalManager.disable_all_heaters();
       lcd_setstatus(MSG_PRINT_ABORTED, true);
+	  lcd_goto_screen(lcd_status_screen);
+    }
+
+	void lcd_stop_print_menu() {
+      START_MENU();
+      MENU_BACK(MSG_LEVEL_BED_CANCEL);
+	  MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_stop);
+      END_MENU();
     }
 
   #endif //SDSUPPORT
@@ -650,7 +662,8 @@ void kill_screen(const char* lcd_msg) {
             MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_sdcard_pause);
           else
             MENU_ITEM(function, MSG_RESUME_PRINT, lcd_sdcard_resume);
-          MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_stop);
+          //MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_stop);
+			MENU_ITEM(submenu, MSG_STOP_PRINT, lcd_stop_print_menu);
         }
         else {
           MENU_ITEM(submenu, MSG_CARD_MENU, lcd_sdcard_menu);
@@ -2915,6 +2928,7 @@ void lcd_update() {
           }
           lcd_setFont(FONT_MENU);
           CURRENTSCREEN();
+          u8g.setColorIndex(1);
           if (drawing_screen && (drawing_screen = u8g.nextPage())) return;
         #else
           CURRENTSCREEN();
