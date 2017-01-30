@@ -88,7 +88,11 @@
 // User-specified version info of this build to display in [Pronterface, etc] terminal window during
 // startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
 // build by the user have been successfully uploaded into firmware.
+#ifdef TEVO_BLTOUCH
+	#define STRING_CONFIG_H_AUTHOR "(dot_bob, BLTouch)" // Who made the changes.
+#else
 #define STRING_CONFIG_H_AUTHOR "(dot_bob, default config)" // Who made the changes.
+#endif
 #define SHOW_BOOTSCREEN
 #define STRING_SPLASH_LINE1 SHORT_BUILD_VERSION // will be shown during bootup in line 1
 #define STRING_SPLASH_LINE2 WEBSITE_URL         // will be shown during bootup in line 2
@@ -131,6 +135,9 @@
 
 // The following define selects which electronics board you have.
 // Please choose the name from boards.h that matches your setup
+
+#define MOTHERBOARD BOARD_MKS_13
+
 #ifndef MOTHERBOARD
   #define MOTHERBOARD BOARD_RAMPS_14_EFB
 #endif
@@ -398,8 +405,8 @@
 
 // This option prevents a single extrusion longer than EXTRUDE_MAXLENGTH.
 // Note that for Bowden Extruders a too-small value here may prevent loading.
-//#define PREVENT_LENGTHY_EXTRUDE
-#define EXTRUDE_MAXLENGTH 200
+#define PREVENT_LENGTHY_EXTRUDE
+#define EXTRUDE_MAXLENGTH 300
 
 //===========================================================================
 //======================== Thermal Runaway Protection =======================
@@ -502,7 +509,6 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2[, E3]]]
  */
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 4000, 500 }
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {160,160,3200,935}  // Tevo Black Widow with stock extruder
 
 /**
@@ -510,7 +516,7 @@
  * Override with M203
  *                                      X, Y, Z, E0 [, E1[, E2[, E3]]]
  */
-#define DEFAULT_MAX_FEEDRATE          { 300, 300, 5, 25 }
+#define DEFAULT_MAX_FEEDRATE          { 200, 150, 10, 25 }
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -518,8 +524,8 @@
  * Override with M201
  *                                      X, Y, Z, E0 [, E1[, E2[, E3]]]
  */
-//#define DEFAULT_MAX_ACCELERATION      { 3000, 3000, 100, 10000 }
-#define DEFAULT_MAX_ACCELERATION      { 1000, 1000, 100, 10000 }
+#define DEFAULT_MAX_ACCELERATION      { 1500, 1000, 100, 10000 }
+
 
 /**
  * Default Acceleration (change/s) change = mm/s
@@ -529,11 +535,9 @@
  *   M204 R    Retract Acceleration
  *   M204 T    Travel Acceleration
  */
-//#define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration for printing moves
 #define DEFAULT_ACCELERATION          1000    // X, Y, Z and E acceleration for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  3000    // E acceleration for retracts
-//#define DEFAULT_TRAVEL_ACCELERATION   3000    // X, Y, Z acceleration for travel (non printing) moves
-#define DEFAULT_TRAVEL_ACCELERATION   1000    // X, Y, Z acceleration for travel (non printing) moves
+#define DEFAULT_RETRACT_ACCELERATION  1500    // E acceleration for retracts
+#define DEFAULT_TRAVEL_ACCELERATION   1500    // X, Y, Z acceleration for travel (non printing) moves
 
 /**
  * Default Jerk (mm/s)
@@ -542,10 +546,10 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
-#define DEFAULT_XJERK                 20.0
-#define DEFAULT_YJERK                 20.0
-#define DEFAULT_ZJERK                  0.4
-#define DEFAULT_EJERK                  5.0
+#define DEFAULT_XJERK                 10.0
+#define DEFAULT_YJERK                 10.0
+#define DEFAULT_ZJERK                  0.2
+#define DEFAULT_EJERK                  2.5
 
 
 //===========================================================================
@@ -609,13 +613,13 @@
 #define Z_PROBE_OFFSET_FROM_EXTRUDER 0   // Z offset: -below +above  [the nozzle]
 
 // X and Y axis travel speed (mm/m) between probes
-#define XY_PROBE_SPEED 8000
+#define XY_PROBE_SPEED 9000 // 150 mm/s
 // Speed for the first approach when double-probing (with PROBE_DOUBLE_TOUCH)
 #define Z_PROBE_SPEED_FAST HOMING_FEEDRATE_Z
 // Speed for the "accurate" probe of each point
 #define Z_PROBE_SPEED_SLOW (Z_PROBE_SPEED_FAST / 2)
 // Use double touch for probing
-#define PROBE_DOUBLE_TOUCH
+//#define PROBE_DOUBLE_TOUCH // waste of time see: https://goo.gl/fzHGji
 
 //
 // Allen Key Probe is defined in the Delta example configurations.
@@ -740,7 +744,7 @@
 #define Z_HOME_DIR -1
 
 #define min_software_endstops false // If true, axis won't move to coordinates less than HOME_POS.
-#define max_software_endstops true  // If true, axis won't move to coordinates greater than the defined lengths below.
+#define max_software_endstops false  // If true, axis won't move to coordinates greater than the defined lengths below.
 
 // @section machine
 
@@ -748,7 +752,7 @@
 #define X_MIN_POS 0
 #define Y_MIN_POS 0
 #define Z_MIN_POS 0
-#define X_MAX_POS 355
+#define X_MAX_POS 350
 #define Y_MAX_POS 250
 #define Z_MAX_POS 250
 
@@ -768,8 +772,9 @@
 //===========================================================================
 //============================ Mesh Bed Leveling ============================
 //===========================================================================
-
-//#define MESH_BED_LEVELING    // Enable mesh bed leveling.
+#ifndef TEVO_BLTOUCH
+  #define MESH_BED_LEVELING    // Enable mesh bed leveling.
+#endif
 
 #if ENABLED(MESH_BED_LEVELING)
   #define MESH_INSET 10        // Mesh inset margin on print area
@@ -779,7 +784,7 @@
 
   //#define MESH_G28_REST_ORIGIN // After homing all axes ('G28' or 'G28 XYZ') rest at origin [0,0,0]
 
-  //#define MANUAL_BED_LEVELING  // Add display menu option for bed leveling.
+  #define MANUAL_BED_LEVELING  // Add display menu option for bed leveling.
 
   #if ENABLED(MANUAL_BED_LEVELING)
     #define MBL_Z_STEP 0.025  // Step size while manually probing Z axis.
@@ -839,13 +844,15 @@
   #define ABL_GRID_POINTS_Y ABL_GRID_POINTS_X
 
   // Set the boundaries for probing (where the probe can reach).
-  #define LEFT_PROBE_BED_POSITION 50 // adjusted for the Tevo Black Widow
-  #define RIGHT_PROBE_BED_POSITION 350
-  #define FRONT_PROBE_BED_POSITION 30
-  #define BACK_PROBE_BED_POSITION 220
+  // Leave commented to auto calculate grid positions based on bed size and MIN_PROBE_EDGE
+  // Uncomment to set manually
+  //#define LEFT_PROBE_BED_POSITION 15
+  //#define RIGHT_PROBE_BED_POSITION 170
+  //#define FRONT_PROBE_BED_POSITION 20
+  //#define BACK_PROBE_BED_POSITION 170
 
   // The Z probe minimum outer margin (to validate G29 parameters).
-  #define MIN_PROBE_EDGE 10
+  #define MIN_PROBE_EDGE 20
 
   // Probe along the Y axis, advancing X after each column
   //#define PROBE_Y_FIRST
@@ -917,7 +924,7 @@
 
 // Homing speeds (mm/m)
 #define HOMING_FEEDRATE_XY (50*60)
-#define HOMING_FEEDRATE_Z  (4*60)
+#define HOMING_FEEDRATE_Z  (6*60)
 
 //=============================================================================
 //============================= Additional Features ===========================
@@ -967,12 +974,12 @@
 // @section temperature
 
 // Preheat Constants
-#define PREHEAT_1_TEMP_HOTEND 180
-#define PREHEAT_1_TEMP_BED     70
+#define PREHEAT_1_TEMP_HOTEND 200
+#define PREHEAT_1_TEMP_BED     55
 #define PREHEAT_1_FAN_SPEED     0 // Value from 0 to 255
 
 #define PREHEAT_2_TEMP_HOTEND 240
-#define PREHEAT_2_TEMP_BED    110
+#define PREHEAT_2_TEMP_BED    100
 #define PREHEAT_2_FAN_SPEED     0 // Value from 0 to 255
 
 //
@@ -1162,7 +1169,7 @@
 // This option overrides the default number of encoder pulses needed to
 // produce one step. Should be increased for high-resolution encoders.
 //
-#define ENCODER_PULSES_PER_STEP 3
+#define ENCODER_PULSES_PER_STEP 4
 
 //
 // Use this option to override the number of step signals required to
@@ -1217,7 +1224,7 @@
 // Note: Test audio output with the G-Code:
 //  M300 S<frequency Hz> P<duration ms>
 //
-#define LCD_FEEDBACK_FREQUENCY_DURATION_MS 100
+#define LCD_FEEDBACK_FREQUENCY_DURATION_MS 10 // shorten duration to make it less annoying
 #define LCD_FEEDBACK_FREQUENCY_HZ 1000
 
 //

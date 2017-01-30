@@ -7261,7 +7261,7 @@ inline void gcode_M503() {
       #if HAS_BUZZER
         millis_t ms = millis();
         if (ms >= next_buzz) {
-          BUZZ(300, 2000);
+          BUZZ(10, 2000);
           next_buzz = ms + 2500; // Beep every 2.5s while waiting
         }
       #endif
