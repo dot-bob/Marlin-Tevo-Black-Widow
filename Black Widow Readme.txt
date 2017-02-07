@@ -8,7 +8,16 @@ Having a Tevo Black Widow with the BLTOUCH sensor I often switch between the cur
 BLTOUCH support.  I was getting tired of the performance differences between the two so I decided to create my own port 
 that can be easily switched between the two different code bases.  Being an embedded linux kernel developer myself 
 I decided to make my own port of the Marlin firmware.  My goal was to make the firmware as vanilla as possible allowing
-future ports to mainline to be quick and simple.  For the desciription of changes see below.
+future ports to mainline to be quick and simple.  For the desciription of the changes see below.
+
+Features:
+
+- Simple to add and remove BLTouch support.
+- Support extruder cooling on header HE1 (Heater for extruder #1).
+- Extruder fan is set to switch on above 50 DegC
+- Extruder fan speed to 80% to quiet down the system while printing.
+- Leveling fade support is added (can improve print quality for BLTouch).
+- Quick access to the Babystep Z option.
 
 Usage:
 
@@ -38,14 +47,7 @@ You may want to configure your specific machine printing limits by changing the 
 #define X_MAX_POS 355
 #define Y_MAX_POS 250
 #define Z_MAX_POS 250
-Features:
 
-- Simple to add and remove BLTouch support.
-- Support extruder cooling on header HE1 (Heater for extruder #1).
-- Extruder fan is set to switch on above 50 DegC
-- Extruder fan speed to 80% to quiet down the system while printing.
-- Leveling fade support is added (can improve print quality for BLTouch).
-- Quick access to the Babystep Z option.
 
 GCode scripts:
 
@@ -75,6 +77,13 @@ M84 ; disable motors
 M107 ; turn off fan
 
 Changes:
+Version 1.1.0-RC8 02-07-17 Version 3.1
+- Made the cooldown option when stopping a print from sd card a configurable option in Configuration.h.  By default this
+  option is enabled.  Comment out #define SD_STOP_AUTO_COOLDOWN located in the Extra Features section
+  of the configuration.h to disable this feature.
+- Apply some fixes to the manual bed leveling routine that could cause the homing prompts to hang.
+  
+
 Version 1.1.0-RC8 01-16-17 Version 3
 - Improved display responsiveness.
 - Changed default speed and acceleration settings to make them more conservative to prevent stepper skipping.
