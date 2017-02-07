@@ -1441,6 +1441,9 @@
   #define RGB_LED_B_PIN 35
 #endif
 
+// Enable automatic cooldown when stoping a print that was started from the SD card.
+#define SD_STOP_AUTO_COOLDOWN
+
 /*********************************************************************\
 * R/C SERVO support
 * Sponsored by TrinityLabs, Reworked by codexmas
