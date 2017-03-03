@@ -10,6 +10,15 @@ For the Marlin specific release notes refere to the Marlin RC brach located here
 
 Tevo Black Widow Specific Changes:
 
+Version 1.1.0-RC8 03-02-17 Version 3.2
+- Added replaced "Babystep Z" in the main menu during a print with "Live adjust Z" if using an auto leveling probe.  Live adjust Z
+  modifies the Z offset in realtime and saves the eeprom on exit.
+- Removed unused example configurations.
+- Add status_printf function for status line of display.
+- Added hotend name to heating status indicator.
+- Applied a fix to display E steps with a M503 if more than one extruder configured.
+- Added Dariy & Simon thermistor table and set it to be used as the default for the hotend.
+
 Version 1.1.0-RC8 02-07-17 Version 3.1
 - Made the cooldown option when stopping a print from sd card a configurable option in Configuration.h.  By default this
   option is enabled.  Comment out #define SD_STOP_AUTO_COOLDOWN located in the Extra Features section
