@@ -1,5 +1,5 @@
 Tevo Black Widow Firmware - Marlin 1.1.0-RC8 by dot_bob (Robert Mendon)
-Release Notes
+Version 3.2 Release Notes
 
 Background:
 In short this port is used for both versions of the Tevo Black Widow that ship with and without the BLTOUCH sensor.
@@ -17,7 +17,7 @@ Features:
 - Extruder fan is set to switch on above 50 DegC
 - Extruder fan speed to 80% to quiet down the system while printing.
 - Leveling fade support is added (can improve print quality for BLTouch).
-- Quick access to the Babystep Z option.
+- Quick access to the Live adjust Z option.
 
 Usage:
 
@@ -77,6 +77,15 @@ M84 ; disable motors
 M107 ; turn off fan
 
 Changes:
+Version 1.1.0-RC8 03-02-17 Version 3.2
+- Added replaced "Babystep Z" in the main menu during a print with "Live adjust Z" if using an auto leveling probe.  Live adjust Z
+ modifies the Z offset in realtime and saves the eeprom on exit.
+- Removed unused example configurations.
+- Add status_printf function for status line of display.
+- Added hotend name to heating status indicator.
+- Applied a fix to display E steps with a M503 if more than one extruder configured.
+- Added Dariy & Simon thermistor table and set it to be used as the default for the hotend.
+ 
 Version 1.1.0-RC8 02-07-17 Version 3.1
 - Made the cooldown option when stopping a print from sd card a configurable option in Configuration.h.  By default this
   option is enabled.  Comment out #define SD_STOP_AUTO_COOLDOWN located in the Extra Features section

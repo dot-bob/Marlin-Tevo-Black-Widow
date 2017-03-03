@@ -65,7 +65,9 @@
   #define THERMISTOR_NAME "Makers Tool"
 #elif THERMISTOR_ID == 70
   #define THERMISTOR_NAME "Hephestos 2"
-
+#elif THERMISTOR_ID == 127 // Dariy & Simon table adjusted for stock TEVO Black Widow 
+	#define THERMISTOR_NAME "Updated 1% beta 3950 From Dariy & Simon"
+	
 // Modified thermistors
 #elif THERMISTOR_ID == 51
   #define THERMISTOR_NAME "EPCOS 1K"

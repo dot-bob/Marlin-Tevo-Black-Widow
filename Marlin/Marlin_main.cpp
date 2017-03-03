@@ -5250,9 +5250,9 @@ inline void gcode_M104() {
       }
     #endif
 
-    if (code_value_temp_abs() > thermalManager.degHotend(target_extruder)) LCD_MESSAGEPGM(MSG_HEATING);
+    if (code_value_temp_abs() > thermalManager.degHotend(target_extruder)) status_printf(0,"E%i %s",target_extruder+1, MSG_HEATING);
   }
-  
+
   #if ENABLED(AUTOTEMP)
     planner.autotemp_M104_M109();
   #endif
@@ -5448,7 +5448,7 @@ inline void gcode_M109() {
       else print_job_timer.start();
     #endif
 
-    if (thermalManager.isHeatingHotend(target_extruder)) LCD_MESSAGEPGM(MSG_HEATING);
+    if (thermalManager.isHeatingHotend(target_extruder)) status_printf(0,"E%i %s",target_extruder+1, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -7133,6 +7133,12 @@ inline void gcode_M503() {
     if (code_seen('Z')) {
       float value = code_value_axis_units(Z_AXIS);
       if (Z_PROBE_OFFSET_RANGE_MIN <= value && value <= Z_PROBE_OFFSET_RANGE_MAX) {
+
+#if ENABLED(BABYSTEPPING)
+        if (Planner::abl_enabled)
+          thermalManager.babystep_axis(Z_AXIS, lround((value - zprobe_zoffset) * planner.axis_steps_per_mm[Z_AXIS]));
+#endif // BABYSTEPPING
+
         zprobe_zoffset = value;
         SERIAL_ECHO(zprobe_zoffset);
       }

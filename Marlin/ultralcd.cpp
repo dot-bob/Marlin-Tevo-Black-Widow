@@ -169,6 +169,9 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
   #endif
 
 	#if ENABLED(BABYSTEPPING)
+      #if HAS_BED_PROBE
+        void lcd_babystep_zoffset();
+      #endif
 		void lcd_babystep_z();
 	#endif
 	
@@ -643,10 +646,14 @@ void kill_screen(const char* lcd_msg) {
         MENU_ITEM(gcode, MSG_BLTOUCH_RESET, PSTR("M280 P" STRINGIFY(Z_ENDSTOP_SERVO_NR) " S" STRINGIFY(BLTOUCH_RESET)));
     #endif
 
-    if (planner.movesplanned() || IS_SD_PRINTING) {
-      #if ENABLED(BABYSTEPPING)
+	if (planner.movesplanned() || IS_SD_PRINTING) {
+    #if ENABLED(BABYSTEPPING)
+		  #if HAS_BED_PROBE
+		    MENU_ITEM(submenu, MSG_LIVE_ADJUST_Z, lcd_babystep_zoffset);
+      #else
       	MENU_ITEM(submenu, MSG_BABYSTEP_Z, lcd_babystep_z);
       #endif
+    #endif
       MENU_ITEM(submenu, MSG_TUNE, lcd_tune_menu);
     }
     else {
@@ -730,9 +737,41 @@ void kill_screen(const char* lcd_msg) {
       void lcd_babystep_x() { lcd_goto_screen(_lcd_babystep_x); babysteps_done = 0; defer_return_to_status = true; }
       void lcd_babystep_y() { lcd_goto_screen(_lcd_babystep_y); babysteps_done = 0; defer_return_to_status = true; }
     #endif
+
     void _lcd_babystep_z() { _lcd_babystep(Z_AXIS, PSTR(MSG_BABYSTEPPING_Z)); }
     void lcd_babystep_z() { lcd_goto_screen(_lcd_babystep_z); babysteps_done = 0; defer_return_to_status = true; }
+		
+    #if HAS_BED_PROBE
 
+      void _lcd_babystep_zoffset() {
+#if ENABLED(EEPROM_SETTINGS)
+        if (lcd_clicked) { defer_return_to_status = false; Config_StoreSettings(); return lcd_goto_previous_menu(); }
+#else
+        if (lcd_clicked) { defer_return_to_status = false; return lcd_goto_previous_menu(); }
+#endif
+        ENCODER_DIRECTION_NORMAL();
+        if (encoderPosition) {
+          int babystep_increment = (int32_t)encoderPosition * (BABYSTEP_MULTIPLICATOR);
+          encoderPosition = 0;
+
+          float new_zoffset = zprobe_zoffset + (babystep_increment/planner.axis_steps_per_mm[Z_AXIS]);
+          if (new_zoffset >= Z_PROBE_OFFSET_RANGE_MIN && new_zoffset <= Z_PROBE_OFFSET_RANGE_MAX)
+          {
+            lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+            
+            if (Planner::abl_enabled)
+              thermalManager.babystep_axis(Z_AXIS, babystep_increment);
+      
+            zprobe_zoffset = new_zoffset;
+          }
+        }
+        if (lcdDrawUpdate)
+          lcd_implementation_drawedit(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(zprobe_zoffset));
+      }
+
+      void lcd_babystep_zoffset() { lcd_goto_screen(_lcd_babystep_zoffset); defer_return_to_status = true; }
+
+    #endif // HAS_BED_PROBE
   #endif //BABYSTEPPING
 
   /**
@@ -3115,6 +3154,17 @@ void lcd_setstatuspgm(const char* const message, uint8_t level) {
   strncpy_P(lcd_status_message, message, 3 * (LCD_WIDTH));
   lcd_finishstatus(level > 0);
 }
+
+void status_printf(uint8_t level, const char *Status, ...){
+  if (level < lcd_status_message_level) return;
+  lcd_status_message_level = level;
+  va_list args;
+  va_start(args, Status);
+  vsnprintf(lcd_status_message, 3 * (LCD_WIDTH), Status, args);
+  va_end(args);
+  lcd_finishstatus(level > 0);
+}
+
 
 void lcd_setalertstatuspgm(const char* const message) {
   lcd_setstatuspgm(message, 1);

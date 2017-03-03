@@ -451,8 +451,8 @@ void Stepper::isr() {
           e_hit--;
         }
       #else
-      e_hit--;
-    #endif
+        e_hit--;
+      #endif
     #endif
   }
 
