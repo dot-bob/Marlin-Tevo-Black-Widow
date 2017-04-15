@@ -9,6 +9,10 @@ Marlin for the Tevo Black Widow is base off Release Candidate -- Marlin 1.1.0-RC
 For the Marlin specific release notes refere to the Marlin RC brach located here: https://github.com/MarlinFirmware/Marlin/tree/RC.
 
 Tevo Black Widow Specific Changes:
+Version 1.1.0-RC8 04-15-17 Version 4.0
+- Fixed a bug that prevented DISTINCT_E_FACTORS from working properly.
+- Fixed a bug where the auto level probe would try to probe off the rear of the bed if it had a positive Y offset.
+- Add the new configuration files as outlined in the community guide.
 
 Version 1.1.0-RC8 03-02-17 Version 3.2
 - Added replaced "Babystep Z" in the main menu during a print with "Live adjust Z" if using an auto leveling probe.  Live adjust Z
