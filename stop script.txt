@@ -1,0 +1,9 @@
+; Tevo Black Widow Stop Script
+G92 E0 ; zero the extruded length again
+G1 E-1.5 F500 ; retract the filament to release some of the pressure
+M104 S0 ; turn off extruder
+M140 S0 ; turn off bed
+G28 X0 ; home X axis
+G1 Y245 ; move Y axis to end position
+M84 ; disable motors
+M107 ; turn off fan
