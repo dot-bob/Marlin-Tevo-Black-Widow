@@ -95,7 +95,7 @@ static inline void handle_interrupts(timer16_Sequence_t timer, volatile uint16_t
   if (SERVO_INDEX(timer, Channel[timer]) < ServoCount && Channel[timer] < SERVOS_PER_TIMER) {
     *OCRnA = *TCNTn + SERVO(timer, Channel[timer]).ticks;
     if (SERVO(timer, Channel[timer]).Pin.isActive)    // check if activated
-      digitalWrite(SERVO(timer, Channel[timer]).Pin.nbr, HIGH); // its an active channel so pulse it high
+      digitalWrite(SERVO(timer, Channel[timer]).Pin.nbr, HIGH); // it's an active channel so pulse it high
   }
   else {
     // finished all channels so wait for the refresh period to expire before starting over
@@ -308,9 +308,11 @@ int Servo::readMicroseconds() {
 bool Servo::attached() { return servo_info[this->servoIndex].Pin.isActive; }
 
 void Servo::move(int value) {
+  constexpr uint16_t servo_delay[] = SERVO_DELAY;
+  static_assert(COUNT(servo_delay) == NUM_SERVOS, "SERVO_DELAY must be an array NUM_SERVOS long.");
   if (this->attach(0) >= 0) {
     this->write(value);
-    delay(SERVO_DELAY);
+    delay(servo_delay[this->servoIndex]);
     #if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE)
       this->detach();
     #endif

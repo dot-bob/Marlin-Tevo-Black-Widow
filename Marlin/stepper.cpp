@@ -62,6 +62,10 @@ Stepper stepper; // Singleton
 
 // public:
 
+#if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)
+  extern bool ubl_lcd_map_control;
+#endif
+
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
 
 #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
@@ -73,7 +77,7 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
 #endif
 
 #if HAS_MOTOR_CURRENT_PWM
-  uint32_t Stepper::motor_current_setting[3] = PWM_MOTOR_CURRENT;
+  uint32_t Stepper::motor_current_setting[3]; // Initialized by settings.load()
 #endif
 
 // private:
@@ -860,8 +864,14 @@ void Stepper::isr() {
 
     nextAdvanceISR = eISR_Rate;
 
-    #define SET_E_STEP_DIR(INDEX) \
-      if (e_steps[INDEX]) E## INDEX ##_DIR_WRITE(e_steps[INDEX] < 0 ? INVERT_E## INDEX ##_DIR : !INVERT_E## INDEX ##_DIR)
+    #if ENABLED(MK2_MULTIPLEXER)
+      // Even-numbered steppers are reversed
+      #define SET_E_STEP_DIR(INDEX) \
+        if (e_steps[INDEX]) E## INDEX ##_DIR_WRITE(e_steps[INDEX] < 0 ? !INVERT_E## INDEX ##_DIR ^ TEST(INDEX, 0) : INVERT_E## INDEX ##_DIR ^ TEST(INDEX, 0))
+    #else
+      #define SET_E_STEP_DIR(INDEX) \
+        if (e_steps[INDEX]) E## INDEX ##_DIR_WRITE(e_steps[INDEX] < 0 ? INVERT_E## INDEX ##_DIR : !INVERT_E## INDEX ##_DIR)
+    #endif
 
     #define START_E_PULSE(INDEX) \
       if (e_steps[INDEX]) E## INDEX ##_STEP_WRITE(!INVERT_E_STEP_PIN)
@@ -1275,7 +1285,12 @@ void Stepper::finish_and_disable() {
 }
 
 void Stepper::quick_stop() {
-  cleaning_buffer_counter = 5000;
+  #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)
+    if (!ubl_lcd_map_control)
+      cleaning_buffer_counter = 5000;
+  #else
+    cleaning_buffer_counter = 5000;
+  #endif
   DISABLE_STEPPER_DRIVER_INTERRUPT();
   while (planner.blocks_queued()) planner.discard_current_block();
   current_block = NULL;

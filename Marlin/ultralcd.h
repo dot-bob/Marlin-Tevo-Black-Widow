@@ -64,8 +64,10 @@
   #if ENABLED(DOGLCD)
     extern uint16_t lcd_contrast;
     void set_lcd_contrast(const uint16_t value);
-  #elif ENABLED(SHOW_BOOTSCREEN)
-    void bootscreen();
+  #endif
+
+  #if ENABLED(SHOW_BOOTSCREEN)
+    void lcd_bootscreen();
   #endif
 
   #define LCD_UPDATE_INTERVAL 100
@@ -188,10 +190,15 @@
 void lcd_reset_status();
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
+  extern bool ubl_lcd_map_control;
   void lcd_mesh_edit_setup(float initial);
   float lcd_mesh_edit();
   void lcd_z_offset_edit_setup(float);
   float lcd_z_offset_edit();
+#endif
+
+#if ENABLED(DELTA_CALIBRATION_MENU)
+  float lcd_probe_pt(const float &lx, const float &ly);
 #endif
 
 #endif // ULTRALCD_H

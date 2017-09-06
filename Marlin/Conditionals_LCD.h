@@ -120,7 +120,7 @@
     #define ULTIMAKERCONTROLLER
   #endif
 
-  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
+  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER) || ENABLED(LCD_FOR_MELZI)
     #define DOGLCD
     #define U8GLIB_ST7920
     #define REPRAP_DISCOUNT_SMART_CONTROLLER
@@ -301,11 +301,19 @@
     #endif
   #endif
 
-  #ifndef BOOTSCREEN_TIMEOUT
+  // Boot screens
+  #if DISABLED(ULTRA_LCD)
+    #undef SHOW_BOOTSCREEN
+  #elif !defined(BOOTSCREEN_TIMEOUT)
     #define BOOTSCREEN_TIMEOUT 2500
   #endif
 
   #define HAS_DEBUG_MENU ENABLED(LCD_PROGRESS_BAR_TEST)
+
+  // MK2 Multiplexer forces SINGLENOZZLE to be enabled
+  #if ENABLED(MK2_MULTIPLEXER)
+    #define SINGLENOZZLE
+  #endif
 
   /**
    * Extruders have some combination of stepper motors and hotends
@@ -314,6 +322,7 @@
    *  EXTRUDERS    - Number of Selectable Tools
    *  HOTENDS      - Number of hotends, whether connected or separate
    *  E_STEPPERS   - Number of actual E stepper motors
+   *  E_MANUAL     - Number of E steppers for LCD move options
    *  TOOL_E_INDEX - Index to use when getting/setting the tool state
    *
    */
@@ -367,8 +376,10 @@
       #define NUM_SERVOS (Z_ENDSTOP_SERVO_NR + 1)
     #endif
     #undef DEACTIVATE_SERVOS_AFTER_MOVE
-    #undef SERVO_DELAY
-    #define SERVO_DELAY 50
+    #if NUM_SERVOS == 1
+      #undef SERVO_DELAY
+      #define SERVO_DELAY { 50 }
+    #endif
     #ifndef BLTOUCH_DELAY
       #define BLTOUCH_DELAY 375
     #endif
@@ -421,6 +432,6 @@
 
   #define HAS_SOFTWARE_ENDSTOPS (ENABLED(MIN_SOFTWARE_ENDSTOPS) || ENABLED(MAX_SOFTWARE_ENDSTOPS))
   #define HAS_RESUME_CONTINUE (ENABLED(NEWPANEL) || ENABLED(EMERGENCY_PARSER))
-  #define HAS_COLOR_LEDS (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED) || ENABLED(PCA9632))
+  #define HAS_COLOR_LEDS (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED) || ENABLED(PCA9632) || ENABLED(NEOPIXEL_RGBW_LED))
 
 #endif // CONDITIONALS_LCD_H
