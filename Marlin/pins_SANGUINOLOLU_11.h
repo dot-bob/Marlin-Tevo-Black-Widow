@@ -59,10 +59,6 @@
   #define BOARD_NAME "Sanguinololu <1.2"
 #endif
 
-#ifdef __AVR_ATmega1284P__
-  #define LARGE_FLASH true
-#endif
-
 //
 // Limit Switches
 //
@@ -240,7 +236,7 @@
     #ifndef ST7920_DELAY_1
       #define ST7920_DELAY_1 DELAY_0_NOP
     #endif
-    #ifndef ST7920_DELAY_3
+    #ifndef ST7920_DELAY_2
       #define ST7920_DELAY_2 DELAY_3_NOP
     #endif
     #ifndef ST7920_DELAY_3

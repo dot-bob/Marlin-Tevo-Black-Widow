@@ -75,44 +75,42 @@
 #define BIN 2
 #define BYTE 0
 
+// Define constants and variables for buffering serial data.
+// Use only 0 or powers of 2 greater than 1
+// : [0, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, ...]
+#ifndef RX_BUFFER_SIZE
+  #define RX_BUFFER_SIZE 128
+#endif
+// 256 is the max TX buffer limit due to uint8_t head and tail.
+#ifndef TX_BUFFER_SIZE
+  #define TX_BUFFER_SIZE 32
+#endif
+
 #ifndef USBCON
-  // Define constants and variables for buffering incoming serial data.  We're
-  // using a ring buffer (I think), in which rx_buffer_head is the index of the
-  // location to which to write the next incoming character and rx_buffer_tail
-  // is the index of the location from which to read.
-  // 256 is the max limit due to uint8_t head and tail. Use only powers of 2. (...,16,32,64,128,256)
-  #ifndef RX_BUFFER_SIZE
-    #define RX_BUFFER_SIZE 128
-  #endif
-  #ifndef TX_BUFFER_SIZE
-    #define TX_BUFFER_SIZE 32
-  #endif
-  #if !((RX_BUFFER_SIZE == 256) ||(RX_BUFFER_SIZE == 128) ||(RX_BUFFER_SIZE == 64) ||(RX_BUFFER_SIZE == 32) ||(RX_BUFFER_SIZE == 16) ||(RX_BUFFER_SIZE == 8) ||(RX_BUFFER_SIZE == 4) ||(RX_BUFFER_SIZE == 2))
-    #error "RX_BUFFER_SIZE has to be a power of 2 and >= 2"
-  #endif
-  #if !((TX_BUFFER_SIZE == 256) ||(TX_BUFFER_SIZE == 128) ||(TX_BUFFER_SIZE == 64) ||(TX_BUFFER_SIZE == 32) ||(TX_BUFFER_SIZE == 16) ||(TX_BUFFER_SIZE == 8) ||(TX_BUFFER_SIZE == 4) ||(TX_BUFFER_SIZE == 2) ||(TX_BUFFER_SIZE == 0))
-    #error TX_BUFFER_SIZE has to be a power of 2 or 0
+  #if ENABLED(SERIAL_XON_XOFF) && RX_BUFFER_SIZE < 1024
+    #error "SERIAL_XON_XOFF requires RX_BUFFER_SIZE >= 1024 for reliable transfers without drops."
   #endif
 
-  struct ring_buffer_r {
-    unsigned char buffer[RX_BUFFER_SIZE];
-    volatile uint8_t head;
-    volatile uint8_t tail;
-  };
-
-  #if TX_BUFFER_SIZE > 0
-    struct ring_buffer_t {
-      unsigned char buffer[TX_BUFFER_SIZE];
-      volatile uint8_t head;
-      volatile uint8_t tail;
-    };
+  #if !IS_POWER_OF_2(RX_BUFFER_SIZE) || RX_BUFFER_SIZE < 2
+    #error "RX_BUFFER_SIZE must be a power of 2 greater than 1."
   #endif
 
-  #if UART_PRESENT(SERIAL_PORT)
-    extern ring_buffer_r rx_buffer;
-    #if TX_BUFFER_SIZE > 0
-      extern ring_buffer_t tx_buffer;
-    #endif
+  #if TX_BUFFER_SIZE && (TX_BUFFER_SIZE < 2 || TX_BUFFER_SIZE > 256 || !IS_POWER_OF_2(TX_BUFFER_SIZE))
+    #error "TX_BUFFER_SIZE must be 0, a power of 2 greater than 1, and no greater than 256."
+  #endif
+
+  #if RX_BUFFER_SIZE > 256
+    typedef uint16_t ring_buffer_pos_t;
+  #else
+    typedef uint8_t ring_buffer_pos_t;
+  #endif
+
+  #if ENABLED(SERIAL_STATS_DROPPED_RX)
+    extern uint8_t rx_dropped_bytes;
+  #endif
+
+  #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
+    extern ring_buffer_pos_t rx_max_enqueued;
   #endif
 
   class MarlinSerial { //: public Stream
@@ -124,12 +122,21 @@
       static int peek(void);
       static int read(void);
       static void flush(void);
-      static uint8_t available(void);
+      static ring_buffer_pos_t available(void);
       static void checkRx(void);
       static void write(const uint8_t c);
       #if TX_BUFFER_SIZE > 0
         static uint8_t availableForWrite(void);
         static void flushTX(void);
+      #endif
+      static void writeNoHandshake(const uint8_t c);
+
+      #if ENABLED(SERIAL_STATS_DROPPED_RX)
+        FORCE_INLINE static uint32_t dropped() { return rx_dropped_bytes; }
+      #endif
+
+      #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
+        FORCE_INLINE static ring_buffer_pos_t rxMaxEnqueued() { return rx_max_enqueued; }
       #endif
 
     private:
